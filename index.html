@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Payout Calculator</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --card: #1a1d27;
+            --card-border: #2a2d3a;
+            --input-bg: #252836;
+            --input-border: #3a3d4a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8b8fa3;
+            --accent: #4ecdc4;
+            --accent-glow: rgba(78, 205, 196, 0.2);
+            --accent-bg: rgba(78, 205, 196, 0.08);
+            --red: #ff6b6b;
+            --red-bg: rgba(255, 107, 107, 0.08);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .input-wrapper input {
+            padding-left: 30px;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        .input-wrapper .has-suffix {
+            padding-left: 14px;
+            padding-right: 36px;
+        }
+
+        .results {
+            border-top: 1px solid var(--card-border);
+            padding-top: 20px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .row .label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .row .value {
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.2s;
+        }
+
+        .row.deduction .value {
+            color: var(--red);
+        }
+
+        .row.subtotal {
+            border-top: 1px solid var(--card-border);
+            margin-top: 2px;
+            padding-top: 12px;
+        }
+
+        .row.subtotal .label,
+        .row.subtotal .value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .row.net-amount {
+            border-top: 2px solid var(--card-border);
+            margin-top: 4px;
+            padding: 16px 12px;
+            border-radius: 10px;
+            background: var(--accent-bg);
+        }
+
+        .row.net-amount .label {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .row.net-amount .value {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--accent);
+        }
+
+        .row.net-amount.negative {
+            background: var(--red-bg);
+        }
+
+        .row.net-amount.negative .value {
+            color: var(--red);
+        }
+
+        .affiliate-section {
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+
+        .row.profit-amount {
+            border-top: 2px solid var(--card-border);
+            margin-top: 4px;
+            padding: 16px 12px;
+            border-radius: 10px;
+            background: rgba(167, 139, 250, 0.08);
+        }
+
+        .row.profit-amount .label {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .row.profit-amount .value {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #a78bfa;
+        }
+
+        .row.profit-amount.negative {
+            background: var(--red-bg);
+        }
+
+        .row.profit-amount.negative .value {
+            color: var(--red);
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 24px;
+            }
+
+            .inputs {
+                flex-direction: column;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Affiliate Payout Calculator</h1>
+            <p class="subtitle">Net amount after Stripe fees & enrichment COGS</p>
+        </header>
+
+        <div class="inputs">
+            <div class="input-group">
+                <label for="salePrice">Sale Price</label>
+                <div class="input-wrapper">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="salePrice" value="149" min="0" step="0.01" inputmode="decimal">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="enrichments">Enrichments / Month</label>
+                <input type="number" id="enrichments" placeholder="e.g., 200" min="0" step="1" inputmode="numeric">
+            </div>
+        </div>
+
+        <div class="inputs">
+            <div class="input-group">
+                <label for="affiliatePct">Affiliate Commission %</label>
+                <div class="input-wrapper">
+                    <input type="number" id="affiliatePct" class="has-suffix" placeholder="e.g., 20" min="0" max="100" step="1" inputmode="numeric">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <div class="row">
+                <span class="label">Sale Price</span>
+                <span class="value" id="displaySalePrice">$149.00</span>
+            </div>
+            <div class="row deduction">
+                <span class="label" id="displayStripeFeeLabel">Stripe Fee (2.9% + $0.30)</span>
+                <span class="value" id="displayStripeFee">−$4.62</span>
+            </div>
+            <div class="row subtotal">
+                <span class="label">After Stripe</span>
+                <span class="value" id="displayAfterStripe">$144.38</span>
+            </div>
+            <div class="row deduction">
+                <span class="label" id="displayCOGSLabel">Enrichment COGS (0 × $0.10)</span>
+                <span class="value" id="displayCOGS">−$0.00</span>
+            </div>
+            <div class="row net-amount" id="netAmountRow">
+                <span class="label">Net Amount</span>
+                <span class="value" id="displayNet">$144.38</span>
+            </div>
+
+            <div class="affiliate-section" id="affiliateSection" style="display: none;">
+                <div class="row deduction">
+                    <span class="label" id="displayAffiliateLabel">Affiliate Payout (20%)</span>
+                    <span class="value" id="displayAffiliatePayout">−$24.88</span>
+                </div>
+                <div class="row profit-amount" id="profitRow">
+                    <span class="label">ClickRabbit Profit</span>
+                    <span class="value" id="displayProfit">$99.50</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const salePriceInput = document.getElementById('salePrice');
+        const enrichmentsInput = document.getElementById('enrichments');
+        const affiliatePctInput = document.getElementById('affiliatePct');
+
+        const displaySalePrice = document.getElementById('displaySalePrice');
+        const displayStripeFee = document.getElementById('displayStripeFee');
+        const displayAfterStripe = document.getElementById('displayAfterStripe');
+        const displayCOGSLabel = document.getElementById('displayCOGSLabel');
+        const displayCOGS = document.getElementById('displayCOGS');
+        const displayNet = document.getElementById('displayNet');
+        const netAmountRow = document.getElementById('netAmountRow');
+        const affiliateSection = document.getElementById('affiliateSection');
+        const displayAffiliateLabel = document.getElementById('displayAffiliateLabel');
+        const displayAffiliatePayout = document.getElementById('displayAffiliatePayout');
+        const displayProfit = document.getElementById('displayProfit');
+        const profitRow = document.getElementById('profitRow');
+
+        function formatCurrency(amount) {
+            return '$' + Math.abs(amount).toFixed(2);
+        }
+
+        function calculate() {
+            const salePrice = Math.max(0, parseFloat(salePriceInput.value) || 0);
+            const enrichments = Math.max(0, parseInt(enrichmentsInput.value) || 0);
+            const affiliatePct = Math.max(0, Math.min(100, parseFloat(affiliatePctInput.value) || 0));
+
+            // Stripe fee: 2.9% + $0.30
+            const stripeFee = salePrice > 0 ? (salePrice * 0.029) + 0.30 : 0;
+
+            // After Stripe
+            const afterStripe = salePrice - stripeFee;
+
+            // Enrichment COGS: enrichments × $0.10
+            const enrichmentCOGS = enrichments * 0.10;
+
+            // Net amount
+            const netAmount = afterStripe - enrichmentCOGS;
+
+            // Update display
+            displaySalePrice.textContent = formatCurrency(salePrice);
+            displayStripeFee.textContent = '−' + formatCurrency(stripeFee);
+            displayAfterStripe.textContent = formatCurrency(afterStripe);
+
+            displayCOGSLabel.textContent = 'Enrichment COGS (' + enrichments.toLocaleString() + ' × $0.10)';
+            displayCOGS.textContent = '−' + formatCurrency(enrichmentCOGS);
+
+            displayNet.textContent = (netAmount < 0 ? '−' : '') + formatCurrency(netAmount);
+
+            // Color the net amount
+            if (netAmount < 0) {
+                netAmountRow.classList.add('negative');
+            } else {
+                netAmountRow.classList.remove('negative');
+            }
+
+            // Affiliate payout section
+            if (affiliatePct > 0) {
+                affiliateSection.style.display = 'block';
+                const affiliatePayout = netAmount * (affiliatePct / 100);
+                const youKeep = netAmount - affiliatePayout;
+
+                displayAffiliateLabel.textContent = 'Affiliate Payout (' + affiliatePct + '%)';
+                displayAffiliatePayout.textContent = '−' + formatCurrency(affiliatePayout);
+
+                displayProfit.textContent = (youKeep < 0 ? '−' : '') + formatCurrency(youKeep);
+
+                if (youKeep < 0) {
+                    profitRow.classList.add('negative');
+                } else {
+                    profitRow.classList.remove('negative');
+                }
+            } else {
+                affiliateSection.style.display = 'none';
+            }
+        }
+
+        salePriceInput.addEventListener('input', calculate);
+        enrichmentsInput.addEventListener('input', calculate);
+        affiliatePctInput.addEventListener('input', calculate);
+
+        // Initial calculation
+        calculate();
+    </script>
+</body>
+</html>
